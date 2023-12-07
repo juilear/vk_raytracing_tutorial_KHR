@@ -4,7 +4,7 @@
 
 ## Tutorial ([Setup](../docs/setup.md))
 
-This is an extension of the Vulkan ray tracing [tutorial](https://nvpro-samples.github.io/vk_raytracing_tutorial_KHR).
+This is an extension of the Vulkan ray tracing [tutorial](https://nvpro-samples.github.io/vk_raytracing_tutorial_KHR/vkrt_tutorial.md.html).
 
 This extension to the tutorial is showing how G-Buffers from the fragment shader, can be used in a compute shader to cast ambient occlusion rays using
 ray queries [(GLSL_EXT_ray_query)](https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GLSL_EXT_ray_query.txt).
@@ -208,7 +208,7 @@ Next, we are adding a `VkImageMemoryBarrier` to be sure the G-Buffer image is re
                        VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 0, nullptr, 1, &imgMemBarrier);
 ~~~~
 
-Folowing is the call to dispatch the compute shader
+Following is the call to dispatch the compute shader
 
 ~~~~ C++
   // Preparing for the compute shader
@@ -251,12 +251,12 @@ after modifying the GUI related to the AO.
 //
 void HelloVulkan::updateFrame()
 {
-  static nvmath::mat4f refCamMatrix;
+  static glm::mat4 refCamMatrix;
   static float         fov = 0;
 
   auto& m = CameraManip.getMatrix();
   auto  f = CameraManip.getFov();
-  if(memcmp(&refCamMatrix.a00, &m.a00, sizeof(nvmath::mat4f)) != 0 || f != fov)
+  if(refCamMatrix != m || f != fov)
   {
     resetFrame();
     refCamMatrix = m;
@@ -410,7 +410,7 @@ Similar to the camera jitter example, the result is stored at frame 0 and accumu
     imageStore(outImage, ivec2(gl_GlobalInvocationID.xy), vec4(new_result));
   }
 }
-
+~~~~
 
 ## IMGUI addition
 

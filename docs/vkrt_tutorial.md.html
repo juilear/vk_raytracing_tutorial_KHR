@@ -301,7 +301,7 @@ auto HelloVulkan::objectToVkGeometryKHR(const ObjModel& model)
   triangles.indexData.deviceAddress = indexAddress;
   // Indicate identity transform by setting transformData to null device pointer.
   //triangles.transformData = {};
-  triangles.maxVertex = model.nbVertices;
+  triangles.maxVertex = model.nbVertices - 1;
 
   // Identify the above data as containing opaque triangles.
   VkAccelerationStructureGeometryKHR asGeom{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR};
@@ -715,7 +715,8 @@ invoked upon hitting the object (`VkAccelerationStructureInstanceKHR::instanceSh
     
     In this specific example, we could have ignored the custom index, since the Id
     will be equivalent to `gl_InstanceId` (as `gl_InstanceId` specifies the index of the
-    instance that intersects the current ray, which is in this case the same value as `i`).
+    instance that intersects the current ray, which is in this case the same value as `ObjInstance::objIndex`: the
+    index of the object in `HelloVulkan::m_instances` and the value we'll set `gl_InstanceCustomIndex` to below).
     In later examples the value will be different.
 
 This index and the notion of hit group are tied to the definition of the ray tracing pipeline and the Shader Binding
@@ -956,7 +957,7 @@ In the header `hello_vulkan.h`, we declare the objects related to this additiona
   VkDescriptorSet                                 m_rtDescSet;
 ~~~~
 
-The acceleration structure will be accessible by the Ray Generation shader, as we want to call `TraceRayEXT()` from this
+The acceleration structure will be accessible by the Ray Generation shader, as we want to call `traceRayEXT()` from this
 shader. Later in this document, we will also make it accessible from the Closest Hit shader, in order to send rays from
 there as well. The output image is the offscreen image used by the rasterization, and will be written only by the
 RayGen shader.
@@ -1188,7 +1189,7 @@ To be able to focus on the pipeline generation, we provide simple shaders:
 The `shaders` folder now contains 3 more files:
 
 * `raytrace.rgen` contains the ray generation program. It also declares its access to the ray tracing output buffer
-  `image`, and the ray tracing acceleration structure `topLevelAS`, bound as an `accelerationStructureKHR`. For now this
+  `image`, and the ray tracing acceleration structure `topLevelAS`, bound as an `accelerationStructureEXT`. For now this
   shader program simply writes a constant color into the output buffer.
 
 * `raytrace.rmiss` defines the miss shader. This shader will be executed when no geometry is hit, and will write a
@@ -1387,7 +1388,7 @@ rayPipelineInfo.pGroups    = m_rtShaderGroups.data();
 The ray generation and closest hit shaders can trace rays, making the ray tracing a potentially recursive process. To
 allow the underlying RTX layer to optimize the pipeline we indicate the maximum recursion depth used by our shaders. For
 the simplistic shaders we currently have, we set this depth to 1, meaning that we must not trigger
-recursion at all (i.e. a hit shader calling `TraceRayEXT()`). Note that it is preferable to keep the recursion level
+recursion at all (i.e. a hit shader calling `traceRayEXT()`). Note that it is preferable to keep the recursion level
 as low as possible, replacing it by a loop formulation instead.
 
 ~~~~ C
@@ -1632,7 +1633,7 @@ In the `main` function, we now add the construction of the Shader Binding Table:
 Let's create a function that will record commands to call the ray trace shaders. First, add the declaration to the header
 
 ~~~~ C
-void       raytrace(const VkCommandBuffer& cmdBuf, const nvmath::vec4f& clearColor);
+void       raytrace(const VkCommandBuffer& cmdBuf, const glm::vec4& clearColor);
 ~~~~
 
 We first bind the pipeline and its layout, and set the push constants that will be available throughout the pipeline:
@@ -1641,7 +1642,7 @@ We first bind the pipeline and its layout, and set the push constants that will 
 //--------------------------------------------------------------------------------------------------
 // Ray Tracing the scene
 //
-void HelloVulkan::raytrace(const VkCommandBuffer& cmdBuf, const nvmath::vec4f& clearColor)
+void HelloVulkan::raytrace(const VkCommandBuffer& cmdBuf, const glm::vec4& clearColor)
 {
   m_debug.beginLabel(cmdBuf, "Ray trace");
   // Initializing push constant values
@@ -1792,7 +1793,7 @@ layout(location = 0) rayPayloadEXT hitPayload prd;
 
 The `main` function of the shader then starts by computing the floating-point pixel coordinates, normalized between 0
 and 1. The `gl_LaunchIDEXT` contains the integer coordinates of the pixel being rendered, while `gl_LaunchSizeEXT`
-corresponds to the image size provided when calling `traceRayEXT`.
+corresponds to the image size provided when calling `vkCmdTraceRaysKHR`.
 
 ~~~~ C
 void main()
@@ -2131,7 +2132,7 @@ The OBJ model is loaded in `main.cpp` by calling `helloVk.loadModel`. Let's load
 Since that model is larger, we can change the `CameraManip.setLookat` call to
 
 ~~~~ C
-CameraManip.setLookat(nvmath::vec3f(4, 4, 4), nvmath::vec3f(0, 1, 0), nvmath::vec3f(0, 1, 0));
+CameraManip.setLookat(glm::vec3(4, 4, 4), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 ~~~~
 
 ![](Images/resultRaytraceLightMatMedieval.png)
@@ -2334,7 +2335,7 @@ with more advanced ray tracing based algorithms.
 ----
 
 <!-- Markdeep: -->
-<script src="https://developer.nvidia.com/sites/default/files/akamai/gameworks/whitepapers/markdeep.min.js?" charset="utf-8"></script>
+<script src="https://developer.download.nvidia.com/ProGraphics/nvpro-samples/scripts/markdeep.min.js" charset="utf-8"></script>
 <script>
     window.alreadyProcessedMarkdeep || (document.body.style.visibility = "visible")
 </script>

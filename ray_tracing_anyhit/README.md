@@ -7,7 +7,7 @@
 ## Tutorial ([Setup](../docs/setup.md))
 
 
-This is an extension of the Vulkan ray tracing [tutorial](https://nvpro-samples.github.io/vk_raytracing_tutorial_KHR).
+This is an extension of the Vulkan ray tracing [tutorial](https://nvpro-samples.github.io/vk_raytracing_tutorial_KHR/vkrt_tutorial.md.html).
 
 Like closest hit shaders, any hit shaders operate on intersections between rays and geometry. However, the any hit
 shader will be executed for all hits along the ray. The closest hit shader will then be invoked on the closest accepted
@@ -190,8 +190,8 @@ For a more interesting scene, you can replace the `helloVk.loadModel` calls in `
 ~~~~ C++
   helloVk.loadModel(nvh::findFile("media/scenes/wuson.obj", defaultSearchPaths, true));
   helloVk.loadModel(nvh::findFile("media/scenes/sphere.obj", defaultSearchPaths, true),
-                    nvmath::scale_mat4(nvmath::vec3f(1.5f))
-                        * nvmath::translation_mat4(nvmath::vec3f(0.0f, 1.0f, 0.0f)));
+                    glm::scale(glm::mat4(1.f),glm::vec3(1.5f))
+                        * glm::translate(glm::mat4(1),glm::vec3(0.0f, 1.0f, 0.0f)));
   helloVk.loadModel(nvh::findFile("media/scenes/plane.obj", defaultSearchPaths, true));
 ~~~~
 
